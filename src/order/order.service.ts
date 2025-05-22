@@ -139,6 +139,7 @@ export class OrderService {
   async cancelled(id:number,currentUser:UserEntity):Promise<OrderEntity>
   {
      let order=await this.findOne(id);
+     console.log("order",order);
      if(!order) throw new NotFoundException('order not found')
 
       if(order.status===OrderStatus.CANCELLED) return order;

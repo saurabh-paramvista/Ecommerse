@@ -4,7 +4,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderEntity, OrderStatus } from './entities/order.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { OrdersProductsEntity } from './entities/orders-products.entity';
 import { ShippingEntity } from './entities/shipping.entity';
 import { ProductEntity } from 'src/products/entities/product.entity';
@@ -17,45 +17,103 @@ export class OrderService {
               private readonly orderRepository:Repository<OrderEntity>,
               @InjectRepository(OrdersProductsEntity)
               private readonly orderProductRepository:Repository<OrdersProductsEntity>,
-              private readonly productService:ProductsService )
+              private readonly productService:ProductsService,
+              private readonly dataSource:DataSource)
               {}
 
-  async create(createOrderDto: CreateOrderDto,curentUser:UserEntity):Promise<OrderEntity | null> 
+  async create(createOrderDto: CreateOrderDto,curentUser:UserEntity)
   {
-     const shippingEntity = new ShippingEntity();
-     Object.assign(shippingEntity,createOrderDto.shippingAddress);
 
-     const orderEntity = new OrderEntity();
-     orderEntity.shippingAddress=shippingEntity;
-     orderEntity.user=curentUser;
+     return await this.dataSource.transaction(async (manager)=>{
 
-     const orderTbl=await this.orderRepository.save(orderEntity)
+      const shippingEntity=manager.create(ShippingEntity,createOrderDto.shippingAddress);
+      await manager.save(ShippingEntity,shippingEntity);
 
-     let opEntity:{
-      order:OrderEntity;
-      product:ProductEntity;
-      product_quantity:number;
-      product_unit_price:number;
-     }[]=[];
+      const orderEntity= new OrderEntity();
+      orderEntity.shippingAddress=shippingEntity;
+      orderEntity.user=curentUser;
+      const savedOrder = await  manager.save(OrderEntity,orderEntity);
 
-     for(let i=0;i<createOrderDto.orderedProducts.length;i++)
-     {
-      const order = orderTbl;
-      const product = await this.productService.findOne(createOrderDto.orderedProducts[i].id);
-      if (!product) {
-        throw new Error(`Product with id ${createOrderDto.orderedProducts[i].id} not found`);
+
+      const opEntities:{
+          
+        order:OrderEntity,
+        product:ProductEntity,
+        product_quantity:number,
+        product_unit_price:number
+
+      }[]=[];
+
+      for(const orderedProducts of createOrderDto.orderedProducts)
+      {
+         const product= await this.productService.findOne(orderedProducts.id)
+         if(!product)
+         {
+           throw new Error(`product with id ${orderedProducts.id} not found`)
+         }
+
+         opEntities.push({
+          order:savedOrder,
+          product,
+          product_quantity:orderedProducts.product_quantity,
+          product_unit_price:orderedProducts.product_unit_price,
+         });
+
+         await manager.createQueryBuilder()
+         .insert()
+         .into(OrdersProductsEntity)
+         .values(opEntities)
+         .execute();
+
+         return await manager.findOne(OrderEntity,{
+          where:{id:savedOrder.id},
+          relations:{
+            shippingAddress:true,
+            user:true,
+            products:{
+              product:true
+            }
+          }
+         })
       }
-      const product_quantity = createOrderDto.orderedProducts[i].product_quantity;
-      const product_unit_price = createOrderDto.orderedProducts[i].product_unit_price;
-      opEntity.push({ order, product, product_quantity, product_unit_price });
-     }
 
-     const op =await this.orderProductRepository.createQueryBuilder()
-     .insert()
-     .into(OrdersProductsEntity)
-     .values(opEntity)
-     .execute();
-    return await this.findOne(orderTbl.id);
+     })
+
+    //without transaction
+    //  const shippingEntity = new ShippingEntity();
+    //  Object.assign(shippingEntity,createOrderDto.shippingAddress);
+
+    //  const orderEntity = new OrderEntity();
+    //  orderEntity.shippingAddress=shippingEntity;
+    //  orderEntity.user=curentUser;
+
+    //  const orderTbl=await this.orderRepository.save(orderEntity)
+
+    //  let opEntity:{
+    //   order:OrderEntity;
+    //   product:ProductEntity;
+    //   product_quantity:number;
+    //   product_unit_price:number;
+    //  }[]=[];
+
+    //  for(let i=0;i<createOrderDto.orderedProducts.length;i++)
+    //  {
+    //   const order = orderTbl;
+    //   const product = await this.productService.findOne(createOrderDto.orderedProducts[i].id);
+    //   if (!product) {
+    //     throw new Error(`Product with id ${createOrderDto.orderedProducts[i].id} not found`);
+    //   }
+    //   const product_quantity = createOrderDto.orderedProducts[i].product_quantity;
+    //   const product_unit_price = createOrderDto.orderedProducts[i].product_unit_price;
+    //   opEntity.push({ order, product, product_quantity, product_unit_price });
+    //  }
+
+    //  const op =await this.orderProductRepository.createQueryBuilder()
+    //  .insert()
+    //  .into(OrdersProductsEntity)
+    //  .values(opEntity)
+    //  .execute();
+    // return await this.findOne(orderTbl.id);
   }
 
   async findAll():Promise<OrderEntity[]> 

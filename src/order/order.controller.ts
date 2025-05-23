@@ -17,7 +17,7 @@ export class OrderController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createOrderDto: CreateOrderDto,@CurrentUser() currentUser:UserEntity):Promise<OrderEntity | null>
+  async create(@Body() createOrderDto: CreateOrderDto,@CurrentUser() currentUser:UserEntity)
   {
     return  await this.orderService.create(createOrderDto,currentUser);
   }

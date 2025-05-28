@@ -11,13 +11,14 @@ import { ProductsModule } from './products/products.module';
 import { ReviewModule } from './review/review.module';
 import { OrderModule } from './order/order.module';
 import { CartModule } from './cart/cart.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [ ConfigModule.forRoot({
       isGlobal: true, // 👈 makes env vars available app-wide
     }),
     TypeOrmModule.forRoot(dataSourceOptions), UsersModule,
-     CategoreysModule, AuthModule, ProductsModule, ReviewModule, OrderModule, CartModule,],
+     CategoreysModule, AuthModule, ProductsModule, ReviewModule, OrderModule, CartModule, PaymentModule,],
   controllers: [AppController],
   providers: [AppService],
 })

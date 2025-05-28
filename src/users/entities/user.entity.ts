@@ -1,6 +1,7 @@
 import { CartEntity } from "src/cart/entities/cart.entity";
 import { CategoreyEntity } from "src/categoreys/entities/categorey.entity";
 import { OrderEntity } from "src/order/entities/order.entity";
+import { PaymentEntity } from "src/payment/entities/payment.entity";
 import { ProductEntity } from "src/products/entities/product.entity";
 import { ReviewEntity } from "src/review/entities/review.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
@@ -52,4 +53,6 @@ export class UserEntity
     @OneToMany(()=>CartEntity,(cart)=>cart.addedBy)
     addProduct:CartEntity[];
     
+    @OneToMany(()=>PaymentEntity,(payment)=>payment.user)
+    payments:PaymentEntity[];
 }

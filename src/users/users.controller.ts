@@ -7,7 +7,6 @@ import { UserEntity } from './entities/user.entity';
 import { UserSignInDto } from './dto/signin-user.dto';
 
 
-
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

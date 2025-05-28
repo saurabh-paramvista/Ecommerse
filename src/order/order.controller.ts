@@ -38,7 +38,7 @@ export class OrderController {
   @Roles(UserRole.USER)
   @Put(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderStatusDto,@CurrentUser()currentUser:UserEntity):Promise<OrderEntity>
-   {
+  {
     return this.orderService.update(+id, updateOrderDto,currentUser);
   }
 

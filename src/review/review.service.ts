@@ -68,9 +68,13 @@ export class ReviewService {
     return review;
   }
 
-  update(id: number, updateReviewDto: UpdateReviewDto) 
+  async update(id: number, updateReviewDto: UpdateReviewDto) 
   {
-    return `This action updates a #${id} review`;
+    const result = await this.reviewRepository.findOne({where: {id}});
+    if(!result) throw new NotFoundException(`review not found ..`);
+    
+    Object.assign(result,updateReviewDto);
+    return this.reviewRepository.save(result);
   }
 
   async remove(id: number):Promise<ReviewEntity>

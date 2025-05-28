@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoreyDto } from './dto/create-categorey.dto';
 import { UpdateCategoreyDto } from './dto/update-categorey.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,13 +28,24 @@ constructor(@InjectRepository(CategoreyEntity) private readonly categoryReposito
     return await  this.categoryRepository.findOne({ where: { id } });
   }
 
-  async update(id: number, updateCategoreyDto: UpdateCategoreyDto) 
+  async update(id: number, updateCategoreyDto: UpdateCategoreyDto):Promise<CategoreyEntity>
   {
-    return `This action updates a #${id} categorey`;
+    const result = await this.findOne(id);
+    if(!result)
+    {
+       throw new NotFoundException(`category with id ${id} not found`)
+    }
+    Object.assign(result,updateCategoreyDto);
+    return this.categoryRepository.save(result);
   }
 
-  async remove(id: number)
+  async remove(id: number):Promise<{message:string}>
   {
-    return `This action removes a #${id} categorey`;
+    const result= await this.categoryRepository.delete(id)
+    if(result.affected===0)
+    {
+      throw new NotFoundException(`category item with id ${id} not found.`)
+    }
+    return {message:'Category deleted successfully'};
   }
 }

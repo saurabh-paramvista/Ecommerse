@@ -22,11 +22,11 @@ constructor(@InjectRepository(UserEntity) private usersRepository:Repository<Use
 
   findAll():Promise<UserEntity[]> {
     try{
-    return this.usersRepository.find();
-    }catch(error)
-    {
+      return this.usersRepository.find();
+     }catch(error)
+     {
       throw new InternalServerErrorException(error);
-    }
+     }
   }
 
   findOne(id: number):Promise<UserEntity |null> 

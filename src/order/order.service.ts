@@ -181,8 +181,15 @@ export class OrderService {
     return order;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: number) 
+  {
+    const result = await this.orderRepository.delete(id);
+    if(result.affected===0)
+    {
+       throw new NotFoundException(`Order with id ${id} Not Found`)
+    }
+
+    return {message:'Order Deleted Successfully'};
   }
 
   async stockUpdate(order:OrderEntity,status:string):Promise<any>

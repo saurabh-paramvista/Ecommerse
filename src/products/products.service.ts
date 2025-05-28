@@ -151,7 +151,7 @@ export class ProductsService {
       
       product.stock += stock;
     }
-
+    
     product = await this.productRepository.save(product);
     return product;
   }

@@ -16,10 +16,10 @@ export class ReviewEntity
     comment:string;
 
     @CreateDateColumn()
-    createdAt:Timestamp;
+    createdAt:Date;
 
     @UpdateDateColumn()
-    updatedAt:Timestamp;
+    updatedAt:Date;
 
     @ManyToOne(type=>UserEntity,(user)=>user.reviews)
     user:UserEntity;

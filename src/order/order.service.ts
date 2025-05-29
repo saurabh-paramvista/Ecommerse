@@ -17,6 +17,8 @@ export class OrderService {
               private readonly orderRepository:Repository<OrderEntity>,
               @InjectRepository(OrdersProductsEntity)
               private readonly orderProductRepository:Repository<OrdersProductsEntity>,
+              @InjectRepository(ShippingEntity)
+              private readonly shippeingRepository:Repository<ShippingEntity>,
               private readonly productService:ProductsService,
               private readonly dataSource:DataSource)
               {}
@@ -123,6 +125,12 @@ export class OrderService {
         shippingAddress:true,
         user:true,
         products:{product:true}
+      },select:{
+        user:{
+          id:true,
+          name:true,
+          email:true
+        }
       }
     });;
   }
@@ -135,6 +143,12 @@ export class OrderService {
         shippingAddress:true,
         user:true,
         products:{product:true}
+      },select:{
+        user:{
+          id:true,
+          name:true,
+          email:true
+        }
       }
     });
   }
@@ -155,7 +169,7 @@ export class OrderService {
       throw new BadGatewayException('order before shipped')
     }
 
-    if((order.status===OrderStatus.SHIPPED))
+    if((order.status===OrderStatus.SHIPPED && updateOrderStatusDto.status===OrderStatus.SHIPPED))
     {
       return order
     }
@@ -167,7 +181,7 @@ export class OrderService {
 
     if(updateOrderStatusDto.status===OrderStatus.DELEVERED)
     {
-      order.deliverdAt=new Date();
+      order.deliverdAt= new Date();
     }
 
     order.status=updateOrderStatusDto.status;
@@ -181,15 +195,101 @@ export class OrderService {
     return order;
   }
 
-  async remove(id: number) 
+  async remove(id: number):Promise<any>
   {
-    const result = await this.orderRepository.delete(id);
-    if(result.affected===0)
-    {
-       throw new NotFoundException(`Order with id ${id} Not Found`)
-    }
+    //apply transaction 
+     const quaryRunner = await this.dataSource.createQueryRunner();
+     await quaryRunner.connect();
+     await quaryRunner.startTransaction();
 
-    return {message:'Order Deleted Successfully'};
+     try
+     {
+      const order = await quaryRunner.manager.findOne(this.orderRepository.target,{where:{id},
+      relations:{
+        shippingAddress:true,
+        products:{
+          product:true
+        }
+      }})
+
+      if(!order)
+      {
+         throw new NotFoundException(`Order with id ${id} Not Found.`)
+      }
+
+      const shippingAddressId = order.shippingAddress.id;
+
+      if(!order.products || order.products.length===0)
+      {
+         throw new NotFoundException(`Product Not Found..`)
+      }
+
+      for(const op of order.products)
+      {
+        await quaryRunner.manager.delete(this.orderProductRepository.target,op.id);
+      }
+
+      const deleteOrderResult = await quaryRunner.manager.delete(this.orderRepository.target,id)
+
+      if(deleteOrderResult.affected===0)
+      {
+        throw new NotFoundException(`Order Not Deleted`);
+      }
+
+       const isShippingAddressUsed = await quaryRunner.manager.findOne(this.orderRepository.target, {
+        where: { shippingAddress: { id: shippingAddressId } },
+        relations: { shippingAddress: true },
+        });
+
+        if(!isShippingAddressUsed && shippingAddressId)
+        {
+          await quaryRunner.manager.delete(this.shippeingRepository.target,shippingAddressId);
+        }
+        await quaryRunner.commitTransaction();
+        return `Order with id ${id} Deleted Successfully.`
+
+     }catch(error)
+     {
+      await quaryRunner.rollbackTransaction();
+       throw error;
+     }finally
+     {
+       await quaryRunner.release();
+     }
+
+     //without transaction
+  //  const order = await this.orderRepository.findOne({where:{id},
+  //   relations:{
+  //     shippingAddress:true,
+  //     products:{
+  //       product:true
+  //     }}})
+
+  //   if(!order) throw new NotFoundException(`order with id ${id} Not found`)
+
+  //   const shippingAddress = await this.shippeingRepository.findOne({ where: { id: order?.shippingAddress.id }})
+  //   if(!shippingAddress) throw new NotFoundException(`shipping with id ${order?.shippingAddress.id} Not Found.`)
+
+  //   const shippindAdressUse = await this.orderRepository.findOne({where:{shippingAddress:{id:order.shippingAddress.id}},
+  //     relations:{
+  //       shippingAddress:true
+  //     }})
+
+  //   if(!shippindAdressUse)
+  //     {
+  //        await this.shippeingRepository.delete(shippingAddress.id)
+  //     } 
+
+  //  if(!order?.products)throw new NotFoundException(`product Not Found.`);
+  //  const product = await order?.products.map(p=>this.orderProductRepository.delete(p.id)); 
+
+  //   const orders = await this.orderRepository.delete(id)
+  //   if(orders.affected===0)
+  //   {
+  //     throw new NotFoundException('Order Not deleted.')
+  //   }
+    
+  //   return `Order with id ${id} deleted successfully.`;
   }
 
   async stockUpdate(order:OrderEntity,status:string):Promise<any>
@@ -204,7 +304,6 @@ export class OrderService {
   async cancelled(id:number,currentUser:UserEntity):Promise<OrderEntity>
   {
      let order=await this.findOne(id);
-     console.log("order",order);
      if(!order) throw new NotFoundException('order not found')
 
       if(order.status===OrderStatus.CANCELLED) return order;

@@ -1,3 +1,4 @@
+import { CartEntity } from "src/cart/entities/cart.entity";
 import { CategoreyEntity } from "src/categoreys/entities/categorey.entity";
 import { OrdersProductsEntity } from "src/order/entities/orders-products.entity";
 import { ReviewEntity } from "src/review/entities/review.entity";
@@ -27,10 +28,10 @@ export class ProductEntity
     images:string[];
 
     @CreateDateColumn()
-    createdAt:Timestamp;
+    createdAt:Date;
 
     @UpdateDateColumn()
-    updatedAt:Timestamp;
+    updatedAt:Date;
 
     @ManyToOne(()=>UserEntity,(user)=>user.products)
     addedBy:UserEntity;
@@ -43,4 +44,7 @@ export class ProductEntity
 
     @OneToMany(()=>OrdersProductsEntity,(op)=>op.product)
     products:OrdersProductsEntity[];
+
+    @OneToMany(()=>CartEntity,(cart)=>cart.products)
+    product:CartEntity[];
 }

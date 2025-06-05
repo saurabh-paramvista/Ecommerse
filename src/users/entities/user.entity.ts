@@ -1,13 +1,13 @@
+import { CartEntity } from "src/cart/entities/cart.entity";
 import { CategoreyEntity } from "src/categoreys/entities/categorey.entity";
 import { OrderEntity } from "src/order/entities/order.entity";
+import { PaymentEntity } from "src/payment/entities/payment.entity";
 import { ProductEntity } from "src/products/entities/product.entity";
 import { ReviewEntity } from "src/review/entities/review.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Timestamp, UpdateDateColumn } from "typeorm";
 
 export enum UserRole {
   ADMIN = 'admin',
-  BUYER = 'buyer',
-  AGENT = 'agent',
   USER = 'user',
 }
 
@@ -30,10 +30,10 @@ export class UserEntity
     roles:UserRole[];
 
     @CreateDateColumn()
-    createdAt:Timestamp;
+    createdAt:Date;
 
     @UpdateDateColumn()
-    updatedAt:Timestamp;
+    updatedAt:Date;
 
     @OneToMany(()=>CategoreyEntity,(cat)=>cat.addedBy)
     categories:CategoreyEntity[];
@@ -49,5 +49,10 @@ export class UserEntity
 
     @OneToMany(()=>OrderEntity,(order)=>order.user)
     orders:OrderEntity[];
+
+    @OneToMany(()=>CartEntity,(cart)=>cart.addedBy)
+    addProduct:CartEntity[];
     
+    @OneToMany(()=>PaymentEntity,(payment)=>payment.user)
+    payments:PaymentEntity[];
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put } from '@nestjs/common';
 import { CategoreysService } from './categoreys.service';
 import { CreateCategoreyDto } from './dto/create-categorey.dto';
 import { UpdateCategoreyDto } from './dto/update-categorey.dto';
@@ -12,7 +12,7 @@ import { UserEntity, UserRole } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/decoratores/current-user.decorator';
 import { CategoreyEntity } from './entities/categorey.entity';
 
-@Controller('categoreys')
+@Controller('categories')
 export class CategoreysController {
   constructor(private readonly categoreysService: CategoreysService) {}
 
@@ -38,14 +38,14 @@ export class CategoreysController {
     return await this.categoreysService.findOne(+id);
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateCategoreyDto: UpdateCategoreyDto) 
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updateCategoreyDto: UpdateCategoreyDto):Promise<CategoreyEntity> 
   {
     return await this.categoreysService.update(+id, updateCategoreyDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string)
+  async remove(@Param('id') id: string):Promise<{message:string}>
  {
     return await this.categoreysService.remove(+id);
   }

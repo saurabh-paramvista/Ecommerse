@@ -17,7 +17,7 @@ export class OrderController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createOrderDto: CreateOrderDto,@CurrentUser() currentUser:UserEntity):Promise<OrderEntity | null>
+  async create(@Body() createOrderDto: CreateOrderDto,@CurrentUser() currentUser:UserEntity)
   {
     return  await this.orderService.create(createOrderDto,currentUser);
   }
@@ -38,7 +38,7 @@ export class OrderController {
   @Roles(UserRole.USER)
   @Put(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderStatusDto,@CurrentUser()currentUser:UserEntity):Promise<OrderEntity>
-   {
+  {
     return this.orderService.update(+id, updateOrderDto,currentUser);
   }
 
@@ -51,8 +51,8 @@ export class OrderController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string)
+  remove(@Param('id') id: number)
   {
-    return this.orderService.remove(+id);
+    return this.orderService.remove(id);
   }
 }

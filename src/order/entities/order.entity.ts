@@ -2,6 +2,7 @@ import { UserEntity } from "src/users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Timestamp } from "typeorm";
 import { ShippingEntity } from "./shipping.entity";
 import { OrdersProductsEntity } from "./orders-products.entity";
+import { PaymentEntity } from "src/payment/entities/payment.entity";
 
 export enum OrderStatus
 {
@@ -19,7 +20,7 @@ export class OrderEntity
     id:number;
 
     @CreateDateColumn()
-    orderAt:Timestamp;
+    orderAt:Date;
 
     @Column({type:"enum",enum:OrderStatus,default:OrderStatus.PROCESSING})
     status:string;
@@ -44,4 +45,7 @@ export class OrderEntity
 
     @ManyToOne(()=>UserEntity,(user)=>user.orders)
     user:UserEntity;
+
+    @OneToOne(()=>PaymentEntity,(payment)=>payment.order)
+    payment:PaymentEntity;
 }

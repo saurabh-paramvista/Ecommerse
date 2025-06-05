@@ -21,7 +21,7 @@ export class SerializeInterceptor<T> implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
-        return plainToClass(this.dto, data, {
+        return plainToInstance(this.dto, data, {
           exposeUnsetFields: true,
         });
       }),

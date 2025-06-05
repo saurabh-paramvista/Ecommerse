@@ -1,4 +1,4 @@
-import { IsInt, isNotEmpty, IsNotEmpty, IsPositive } from "class-validator";
+import { IsInt, IsNotEmpty, IsPositive } from "class-validator";
 
 export class CreateCartDto 
 {

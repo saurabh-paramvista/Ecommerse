@@ -18,7 +18,7 @@ export class OrderService {
               @InjectRepository(OrdersProductsEntity)
               private readonly orderProductRepository:Repository<OrdersProductsEntity>,
               @InjectRepository(ShippingEntity)
-              private readonly shippeingRepository:Repository<ShippingEntity>,
+              private readonly shippingRepository:Repository<ShippingEntity>,
               private readonly productService:ProductsService,
               private readonly dataSource:DataSource)
               {}
@@ -81,41 +81,6 @@ export class OrderService {
 
      })
 
-    //without transaction
-    //  const shippingEntity = new ShippingEntity();
-    //  Object.assign(shippingEntity,createOrderDto.shippingAddress);
-
-    //  const orderEntity = new OrderEntity();
-    //  orderEntity.shippingAddress=shippingEntity;
-    //  orderEntity.user=curentUser;
-
-    //  const orderTbl=await this.orderRepository.save(orderEntity)
-
-    //  let opEntity:{
-    //   order:OrderEntity;
-    //   product:ProductEntity;
-    //   product_quantity:number;
-    //   product_unit_price:number;
-    //  }[]=[];
-
-    //  for(let i=0;i<createOrderDto.orderedProducts.length;i++)
-    //  {
-    //   const order = orderTbl;
-    //   const product = await this.productService.findOne(createOrderDto.orderedProducts[i].id);
-    //   if (!product) {
-    //     throw new Error(`Product with id ${createOrderDto.orderedProducts[i].id} not found`);
-    //   }
-    //   const product_quantity = createOrderDto.orderedProducts[i].product_quantity;
-    //   const product_unit_price = createOrderDto.orderedProducts[i].product_unit_price;
-    //   opEntity.push({ order, product, product_quantity, product_unit_price });
-    //  }
-
-    //  const op =await this.orderProductRepository.createQueryBuilder()
-    //  .insert()
-    //  .into(OrdersProductsEntity)
-    //  .values(opEntity)
-    //  .execute();
-    // return await this.findOne(orderTbl.id);
   }
 
   async findAll():Promise<OrderEntity[]> 
@@ -243,10 +208,10 @@ export class OrderService {
 
         if(!isShippingAddressUsed && shippingAddressId)
         {
-          await quaryRunner.manager.delete(this.shippeingRepository.target,shippingAddressId);
+          await quaryRunner.manager.delete(this.shippingRepository.target,shippingAddressId);
         }
         await quaryRunner.commitTransaction();
-        return `Order with id ${id} Deleted Successfully.`
+        return { message:`Order with id ${id} Deleted Successfully.`}
 
      }catch(error)
      {
@@ -257,39 +222,7 @@ export class OrderService {
        await quaryRunner.release();
      }
 
-     //without transaction
-  //  const order = await this.orderRepository.findOne({where:{id},
-  //   relations:{
-  //     shippingAddress:true,
-  //     products:{
-  //       product:true
-  //     }}})
-
-  //   if(!order) throw new NotFoundException(`order with id ${id} Not found`)
-
-  //   const shippingAddress = await this.shippeingRepository.findOne({ where: { id: order?.shippingAddress.id }})
-  //   if(!shippingAddress) throw new NotFoundException(`shipping with id ${order?.shippingAddress.id} Not Found.`)
-
-  //   const shippindAdressUse = await this.orderRepository.findOne({where:{shippingAddress:{id:order.shippingAddress.id}},
-  //     relations:{
-  //       shippingAddress:true
-  //     }})
-
-  //   if(!shippindAdressUse)
-  //     {
-  //        await this.shippeingRepository.delete(shippingAddress.id)
-  //     } 
-
-  //  if(!order?.products)throw new NotFoundException(`product Not Found.`);
-  //  const product = await order?.products.map(p=>this.orderProductRepository.delete(p.id)); 
-
-  //   const orders = await this.orderRepository.delete(id)
-  //   if(orders.affected===0)
-  //   {
-  //     throw new NotFoundException('Order Not deleted.')
-  //   }
-    
-  //   return `Order with id ${id} deleted successfully.`;
+  
   }
 
   async stockUpdate(order:OrderEntity,status:string):Promise<any>

@@ -5,9 +5,9 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, Prim
 
 export enum PaymentStatus
 {
-    PENDDING='pendding',
+    PENDING='pending',
     COMPLETED='completed',
-    FAILED='feiled'
+    FAILED='failed'
 }
 
 @Entity('payment')
@@ -19,7 +19,7 @@ export class PaymentEntity
    @Column('decimal',{precision:10,scale:2})
    amount:number;
 
-   @Column({type:'enum',enum:PaymentStatus,array:true,default:[PaymentStatus.PENDDING]})
+   @Column({type:'enum',enum:PaymentStatus,array:true,default:[PaymentStatus.PENDING]})
    status:PaymentStatus[];
 
    @Column()

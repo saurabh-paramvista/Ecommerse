@@ -7,8 +7,8 @@ import { LoggerMiddleware } from './interceptors/logger.middleware';
 
 
 async function bootstrap() {
+  dotenv.config();
   const app = await NestFactory.create(AppModule);
-    dotenv.config();
   app.use(cookieParser())
   app.useGlobalPipes(new ValidationPipe({whitelist:true}))
   app.use(new LoggerMiddleware().use); 
